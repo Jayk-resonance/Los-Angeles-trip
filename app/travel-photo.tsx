@@ -1,0 +1,2 @@
+import type {Scene} from '@/lib/scenes';
+export function TravelPhoto({scene,eager=false,sizes='100vw'}:{scene:Scene;eager?:boolean;sizes?:string}){return <img className="la-travel-photo" src={scene.src} srcSet={scene.small?`${scene.small} 640w, ${scene.src} 1600w`:undefined} sizes={sizes} alt={scene.alt} loading={eager?'eager':'lazy'} decoding="async" fetchPriority={eager?'high':undefined} style={{objectPosition:scene.position||'center'}}/>;}
