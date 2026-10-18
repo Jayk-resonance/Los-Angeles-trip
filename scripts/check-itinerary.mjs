@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import ts from 'typescript';
+import { DatabaseSync } from 'node:sqlite';
+const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'la-itinerary-'));
+try {
+ for(const name of ['trip','itinerary-revision']){
+  let source=ts.transpileModule(fs.readFileSync(`lib/${name}.ts`,'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+  source=source.replace("from './trip'","from './trip.mjs'");
+  fs.writeFileSync(path.join(temporary,`${name}.mjs`),source);
+ }
+ const {INITIAL_ITEMS,INITIAL_DECISIONS,DAYS,BOOKING_GUIDE}=await import(path.join(temporary,'trip.mjs'));
+ const {applyItineraryRevision,ITINERARY_REVISION}=await import(path.join(temporary,'itinerary-revision.mjs'));
+ assert.equal(new Set(INITIAL_ITEMS.map(x=>x.id)).size,INITIAL_ITEMS.length);
+ for(const day of DAYS)assert(INITIAL_ITEMS.some(x=>x.day===day),`Missing ${day}`);
+ for(const x of INITIAL_ITEMS){assert(DAYS.includes(x.day));assert(/^([01]\d|2[0-3]):[0-5]\d$/.test(x.time));assert(x.people.length>0);}
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='mickys').status,'후보');
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='universal').day,'2026-11-04');
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='joshua').day,'2026-10-31');
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='joshua-morning').day,'2026-11-01');
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='griffith').day,'2026-11-03');
+ assert(!INITIAL_ITEMS.some(x=>x.id==='carnaval'));
+ assert.equal(BOOKING_GUIDE.find(x=>x.title==='게티센터').requirement,'무료 시간 지정 예약 필수');
+ const sql=new DatabaseSync(':memory:');
+ sql.exec('CREATE TABLE records (id TEXT PRIMARY KEY,kind TEXT,data TEXT,author TEXT,created TEXT,deleted INTEGER DEFAULT 0); CREATE TABLE votes (id TEXT PRIMARY KEY,choice TEXT);');
+ const insert=sql.prepare('INSERT INTO records (id,kind,data,author,created) VALUES (?,?,?,?,?)');
+ for(const x of INITIAL_ITEMS.filter(x=>['universal','joshua','joshua-morning','getty'].includes(x.id)))insert.run(x.id,'item',JSON.stringify({...x,day:'2026-10-30',done:x.id==='universal',status:x.id==='getty'?'예약 완료':x.status}),'system','old');
+ insert.run('carnaval','item','{"title":"old carnival"}','system','old');
+ insert.run('hhn-choice','decision','{"status":"open"}','system','old');
+ insert.run('expense-1','expense','{"amount":25}','user','old');
+ insert.run('memory-1','memory','{"text":"keep"}','user','old');
+ sql.prepare('INSERT INTO votes VALUES (?,?)').run('vote-1','old vote');
+ function prepare(query){return {bind(...args){const s=sql.prepare(query);return{first:async()=>s.get(...args)??null,all:async()=>({results:s.all(...args)}),run:async()=>s.run(...args)}} ,all:async()=>({results:sql.prepare(query).all()})};}
+ const database={prepare,batch:async(stmts)=>{sql.exec('BEGIN');try{const result=[];for(const x of stmts)result.push(await x.run());sql.exec('COMMIT');return result;}catch(e){sql.exec('ROLLBACK');throw e;}}};
+ await applyItineraryRevision(database);
+ const value=id=>JSON.parse(sql.prepare('SELECT data FROM records WHERE id=?').get(id).data);
+ assert.equal(value('universal').day,'2026-11-04');assert.equal(value('universal').done,true);
+ assert.equal(value('getty').day,'2026-10-30'); // An already-booked row must survive.
+ assert.equal(sql.prepare('SELECT deleted FROM records WHERE id=?').get('carnaval').deleted,1);
+ assert.equal(value('hhn-choice').status,'closed');
+ assert.equal(value('expense-1').amount,25);assert.equal(value('memory-1').text,'keep');
+ assert.equal(sql.prepare('SELECT choice FROM votes WHERE id=?').get('vote-1').choice,'old vote');
+ assert(value(ITINERARY_REVISION).previous.some(x=>x.id==='carnaval'));
+ const edited={...value('universal'),time:'10:15'};sql.prepare('UPDATE records SET data=? WHERE id=?').run(JSON.stringify(edited),'universal');
+ await applyItineraryRevision(database);assert.equal(value('universal').time,'10:15');
+ console.log(`PASS: ${INITIAL_ITEMS.length} itinerary items, ${INITIAL_DECISIONS.length} decisions; date mapping, booking guidance, data preservation and idempotent revision.`);
+ sql.close();
+} finally {fs.rmSync(temporary,{recursive:true,force:true});}

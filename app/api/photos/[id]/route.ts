@@ -1,0 +1,3 @@
+import{identity,record,bucket,failure,AppError}from '@/lib/server';
+export const dynamic='force-dynamic';
+export async function GET(req:Request,{params}:{params:Promise<{id:string}>}){try{await identity();const{id}=await params;const r=await record(id,'memory');if(!r.value.photo)throw new AppError(404,'사진이 없습니다.');const object=await bucket().get('memories/'+id);if(!object)throw new AppError(404,'사진을 찾을 수 없습니다.');return new Response(object.body,{headers:{'Content-Type':object.httpMetadata?.contentType??'image/jpeg','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}catch(e){return failure(e);}}
