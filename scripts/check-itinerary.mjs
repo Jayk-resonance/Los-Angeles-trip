@@ -6,13 +6,14 @@ import ts from 'typescript';
 import { DatabaseSync } from 'node:sqlite';
 const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'la-itinerary-'));
 try {
- for(const name of ['trip','itinerary-revision']){
+ for(const name of ['trip','itinerary-revision','flight-confirmation']){
   let source=ts.transpileModule(fs.readFileSync(`lib/${name}.ts`,'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
   source=source.replace("from './trip'","from './trip.mjs'");
   fs.writeFileSync(path.join(temporary,`${name}.mjs`),source);
  }
  const {INITIAL_ITEMS,INITIAL_DECISIONS,DAYS,BOOKING_GUIDE}=await import(path.join(temporary,'trip.mjs'));
  const {applyItineraryRevision,ITINERARY_REVISION}=await import(path.join(temporary,'itinerary-revision.mjs'));
+ const {applyFlightConfirmation,FLIGHT_CONFIRMATION}=await import(path.join(temporary,'flight-confirmation.mjs'));
  assert.equal(new Set(INITIAL_ITEMS.map(x=>x.id)).size,INITIAL_ITEMS.length);
  for(const day of DAYS)assert(INITIAL_ITEMS.some(x=>x.day===day),`Missing ${day}`);
  for(const x of INITIAL_ITEMS){assert(DAYS.includes(x.day));assert(/^([01]\d|2[0-3]):[0-5]\d$/.test(x.time));assert(x.people.length>0);}
@@ -45,6 +46,22 @@ try {
  assert(value(ITINERARY_REVISION).previous.some(x=>x.id==='carnaval'));
  const edited={...value('universal'),time:'10:15'};sql.prepare('UPDATE records SET data=? WHERE id=?').run(JSON.stringify(edited),'universal');
  await applyItineraryRevision(database);assert.equal(value('universal').time,'10:15');
- console.log(`PASS: ${INITIAL_ITEMS.length} itinerary items, ${INITIAL_DECISIONS.length} decisions; date mapping, booking guidance, data preservation and idempotent revision.`);
+ for(const x of INITIAL_ITEMS.filter(x=>['flight-out','lax-arrive','flight-back'].includes(x.id))){
+  insert.run(x.id,'item',JSON.stringify({...x,status:'후보',note:'previous note',done:true,people:['제우']}),'user','old');
+ }
+ await applyFlightConfirmation(database);
+ assert.equal(value('flight-out').status,'예약 완료');
+ assert.equal(value('flight-back').status,'예약 완료');
+ assert.equal(value('lax-arrive').status,'계획 확정');
+ assert(value('flight-out').note.includes('위탁수하물 1인당 1개'));
+ assert(value('flight-back').note.includes('위탁수하물 1인당 2개'));
+ assert(value('flight-back').note.includes('11/7'));
+ assert(value('flight-out').done);assert.deepEqual(value('flight-out').people,['제우']);
+ assert.equal(value(FLIGHT_CONFIRMATION).previous.length,3);
+ assert.equal(sql.prepare('SELECT author FROM records WHERE id=?').get('flight-out').author,'user');
+ sql.prepare("UPDATE records SET data=json_set(data,'$.note',?) WHERE id=?").run('later user edit','flight-out');
+ await applyFlightConfirmation(database);assert.equal(value('flight-out').note,'later user edit');
+ assert.equal(value('expense-1').amount,25);assert.equal(value('memory-1').text,'keep');
+ console.log(`PASS: ${INITIAL_ITEMS.length} itinerary items, ${INITIAL_DECISIONS.length} decisions; date mapping, booking guidance, data preservation, flight confirmation and idempotent revisions.`);
  sql.close();
 } finally {fs.rmSync(temporary,{recursive:true,force:true});}

@@ -86,8 +86,8 @@ export const INITIAL_ITEMS:Item[]=[
     "title": "인천 출발",
     "english": "Air Premia YP101",
     "category": "이동",
-    "status": "후보",
-    "note": "검토 중인 항공편: 인천 13:20 출발, 같은 날 LA 08:20 도착(각 공항 현지시간). 발권 여부는 아직 확인되지 않았어요.",
+    "status": "예약 완료",
+    "note": "발권 완료 · 에어프레미아 YP101 · 이코노미. 10/29 인천(ICN) T1 13:20 출발 → 같은 날 로스앤젤레스(LAX) TB 08:20 도착, 비행 11시간. 위탁수하물 1인당 1개(중량은 예약 상세에서 확인). 각 공항 현지시간 기준.",
     "place": "Incheon International Airport",
     "people": [
       "제우",
@@ -102,8 +102,8 @@ export const INITIAL_ITEMS:Item[]=[
     "title": "LA 도착 · 코리아타운 이동",
     "english": "LAX → Koreatown",
     "category": "이동",
-    "status": "후보",
-    "note": "입국심사와 수하물 수령 후 이동해요. 첫날은 시차 적응을 위해 가볍게 보냅니다.",
+    "status": "계획 확정",
+    "note": "발권한 YP101은 10/29 08:20 LAX TB 도착 예정이에요. 입국심사와 수하물 수령 후 코리아타운으로 이동해요. 첫날은 시차 적응을 위해 가볍게 보냅니다.",
     "place": "Los Angeles International Airport",
     "people": [
       "제우",
@@ -591,8 +591,8 @@ export const INITIAL_ITEMS:Item[]=[
     "title": "LA 출발 · 인천으로",
     "english": "Air Premia YP102",
     "category": "이동",
-    "status": "후보",
-    "note": "선택한 09:50 귀국편 기준. 한국 도착은 11/7 16:20으로 표시된 일정이며 실제 발권 여부는 아직 확인 전이에요.",
+    "status": "예약 완료",
+    "note": "발권 완료 · 에어프레미아 YP102 · 이코노미. 11/6 로스앤젤레스(LAX) TB 09:50 출발 → 11/7 인천(ICN) T1 16:20 도착, 비행 13시간 30분. 위탁수하물 1인당 2개(중량은 예약 상세에서 확인). 각 공항 현지시간 기준.",
     "place": "Los Angeles International Airport",
     "people": [
       "제우",

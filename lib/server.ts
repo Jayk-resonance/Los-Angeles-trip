@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { INITIAL_ITEMS, INITIAL_DECISIONS, INITIAL_EXPENSES, FAMILY, type RecordRow } from './trip';
 import { applyItineraryRevision } from './itinerary-revision';
+import { applyFlightConfirmation } from './flight-confirmation';
 
 export class AppError extends Error{constructor(public status:number,message:string){super(message);}}
 export function db(){if(!env.DB)throw new AppError(503,'저장소 연결을 확인할 수 없습니다. 잠시 후 다시 시도해주세요.');return env.DB;}
@@ -13,6 +14,7 @@ export function sameOrigin(req:Request){const origin=req.headers.get('origin');i
 export async function record(id:string,kind?:string){const r=await db().prepare('SELECT * FROM records WHERE id = ? AND deleted = 0').bind(id).first<RecordRow>();if(!r||kind&&r.kind!==kind)throw new AppError(404,'항목을 찾을 수 없습니다. 새로고침해주세요.');return{...r,value:JSON.parse(r.data)};}
 export async function seed(){
  await applyItineraryRevision(db());
+ await applyFlightConfirmation(db());
  const entries=[...INITIAL_ITEMS.map(x=>({kind:'item',value:x})),...INITIAL_DECISIONS.map(x=>({kind:'decision',value:x})),...INITIAL_EXPENSES.map(x=>({kind:'expense',value:x})),{kind:'settings',value:{id:'settings',rate:1400,rateLabel:'임시 환율 · 1 USD = 1,400 KRW',finalized:false}}];
  await db().batch(entries.map(e=>db().prepare('INSERT OR IGNORE INTO records (id,kind,data,author,created) VALUES (?,?,?,?,?)').bind(e.value.id,e.kind,JSON.stringify(e.value),'system','2026-09-15T00:00:00Z')));
 }
