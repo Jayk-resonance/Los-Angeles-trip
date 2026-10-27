@@ -1,0 +1,24 @@
+'use client';
+import {useState} from 'react';
+import {ArrowRight,ExternalLink,MapPin,Utensils} from 'lucide-react';
+import {RESTAURANTS,HOME_MEALS,type Restaurant} from '@/lib/restaurants';
+const dateLabel=(date:string)=>date.slice(5).replace('-','/');
+function Rating({value,direct=false}:{value:number|null;direct?:boolean}){return <span>{value===null?'미확인':`${value.toFixed(1)}${direct?'':'†'}`}</span>}
+function RestaurantLinks({restaurant:r}:{restaurant:Restaurant}){return <div className="la-food-links"><a href={r.url} target="_blank" rel="noreferrer">메뉴·공식 안내 <ExternalLink size={13}/></a><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.english+' '+r.address)}`} target="_blank" rel="noreferrer"><MapPin size={13}/> 길찾기</a><details><summary>평점 출처</summary>{r.sources.map((url,i)=><a key={url} href={url} target="_blank" rel="noreferrer">출처 {i+1} · {new URL(url).hostname}<ExternalLink size={12}/></a>)}</details></div>}
+export function RestaurantsPanel({onOpenDay}:{onOpenDay:(date:string)=>void}){
+ const [filter,setFilter]=useState('전체');
+ const dates=[...new Set(RESTAURANTS.map(r=>r.date))];
+ const rows=RESTAURANTS.filter(r=>filter==='전체'||(filter==='대안 후보'?r.status==='대안 후보':r.date===filter));
+ return <main className="la-container la-page la-food-page">
+  <div className="la-title"><p className="la-kicker">AT THE TABLE · LOS ANGELES</p><h1>오늘, 뭐 먹을까?</h1><p>동선에 맞춘 식당과 집밥. 매 끼니를 꽉 채우기보다, 먹고 싶은 곳을 함께 골라요.</p></div>
+  <div className="la-food-intro"><div><Utensils size={22}/><h2>외식과 집밥 사이</h2><p>가벼운 타코·버거, 한 번의 스테이크, 며칠의 집밥을 섞은 추천안이에요. 식당 예약이 완료된 일정은 아닙니다.</p></div><aside><span>1인 식비 가이드</span><strong>$400–550</strong><p>여행 전체 · 장보기·커피 포함 예상<br/>술·주차·입장권 제외</p></aside></div>
+  <section className="la-food-highlight"><span className="la-food-badge candidate">새 후보 · 11/3 점심</span><h2>Holbox, 해산물이 당기는 날</h2><p>바하 피시 타코와 훈제 칸파치 토스타다. <b>소노라타운과 둘 중 하나</b>를 고르는 대안이에요. 1인 $30–40, 추가 이동을 고려하세요.</p><a href="#food-holbox" onClick={()=>setFilter('전체')}>후보 살펴보기 <ArrowRight size={15}/></a></section>
+  <section aria-labelledby="food-heading"><div className="la-section-head"><h2 id="food-heading">날짜별 식당 추천</h2><span>10곳 · 대안 포함</span></div>
+   <p className="la-food-disclaimer">금액은 <b>1인 세금·팁 포함 예상액</b>이며 술·주차는 제외합니다. 평점은 5점 만점의 앞서 조사한 참고값으로, 실시간 값이 아닙니다. †는 외부 사이트 재인용, 표시 없는 Yelp 값도 수집 당시 캐시일 수 있습니다.</p>
+   <div className="la-food-filters" role="group" aria-label="식당 필터">{['전체',...dates,'대안 후보'].map(f=><button key={f} aria-pressed={filter===f} className={filter===f?'active':''} onClick={()=>setFilter(f)}>{f.startsWith('2026')?dateLabel(f):f}</button>)}</div>
+   <div className="la-food-table-wrap"><table className="la-food-table"><caption>추천 식당의 일정, 예약, 메뉴, 1인 예산과 평점 비교</caption><thead><tr><th scope="col">날짜 · 끼니</th><th scope="col">식당</th><th scope="col">예약 필요 여부</th><th scope="col">추천 메뉴</th><th scope="col">1인 예상액</th><th scope="col">Google</th><th scope="col">Yelp</th></tr></thead><tbody>{rows.map(r=><tr key={r.id} id={`food-${r.id}`}><td data-label="날짜 · 끼니"><button className="la-food-day" onClick={()=>onOpenDay(r.date)}>{dateLabel(r.date)} <ArrowRight size={12}/></button><small>{r.meal}</small></td><td data-label="식당"><span className={`la-food-badge ${r.status==='대안 후보'?'candidate':''}`}>{r.status}</span><h3>{r.name}</h3><span className="la-food-english">{r.english}</span><p>{r.note}</p><RestaurantLinks restaurant={r}/></td><td data-label="예약 필요 여부">{r.reservation}</td><td data-label="추천 메뉴">{r.menu}</td><td data-label="1인 예상액" className="la-food-price">${r.budget[0]}–{r.budget[1]}</td><td data-label="Google 평점"><Rating value={r.google}/></td><td data-label="Yelp 평점"><Rating value={r.yelp} direct={r.yelpDirect}/></td></tr>)}</tbody></table></div>
+  </section>
+  <section className="la-food-home" aria-labelledby="home-meals"><div className="la-section-head"><h2 id="home-meals">재혁 집에서 해 먹는 날</h2><span>장보기는 함께, 요리는 간단하게</span></div><div className="la-food-home-grid">{HOME_MEALS.map(m=><article className="la-card" key={m.date}><small>{m.date} · {m.meal}</small><h3>{m.menu}</h3><strong>{m.budget} / 1인</strong><p>{m.note}</p></article>)}</div><p className="la-food-disclaimer">아침은 그릭요거트·과일·달걀·베이글 위주로 준비해요. Trader Joe’s·Ralphs·H Mart에서 장을 보면 편해요. 11/4 저녁은 남은 재료로 간단히 먹거나 잔쿠 치킨을 포장하는 안입니다. 11/6은 09:50 귀국편이라 공항 이동과 간단한 아침만 계획해요.</p></section>
+  <section className="la-card la-food-review"><h2>리뷰 확인과 예약</h2><p>Yelp에서 최근 사진과 낮은 평점 후기를 함께 보고, OpenTable에서 예약 가능 여부를 확인해요. Holbox의 일반 메뉴는 현장 주문이며 테이스팅 코스 예약과는 다릅니다. 테일러스는 미리 예약하는 것을 추천해요.</p><div className="la-food-links"><a href="https://www.yelp.com/" target="_blank" rel="noreferrer">Yelp <ExternalLink size={13}/></a><a href="https://www.opentable.com/" target="_blank" rel="noreferrer">OpenTable <ExternalLink size={13}/></a><a href="https://www.holboxla.com/tasting-menu.html" target="_blank" rel="noreferrer">Holbox 테이스팅 안내 <ExternalLink size={13}/></a></div></section>
+ </main>
+}

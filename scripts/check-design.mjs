@@ -5,7 +5,7 @@ import ts from 'typescript';
 import {renderToStaticMarkup} from 'react-dom/server';
 import React from 'react';
 const root=fs.mkdtempSync(path.resolve('.design-check-'));
-const files=['lib/trip.ts','lib/scenes.ts','lib/map-points.ts','lib/photo-credits.ts','app/travel-photo.tsx','app/home-story.tsx','app/day-route-map.tsx','app/trip-app.tsx'];
+const files=['lib/trip.ts','lib/restaurants.ts','app/restaurants-panel.tsx','lib/scenes.ts','lib/map-points.ts','lib/photo-credits.ts','app/travel-photo.tsx','app/home-story.tsx','app/day-route-map.tsx','app/trip-app.tsx'];
 try{
  for(const file of files){
   const target=path.join(root,file.replace(/\.tsx?$/,'.mjs'));fs.mkdirSync(path.dirname(target),{recursive:true});
@@ -41,7 +41,17 @@ try{
  const home=renderToStaticMarkup(React.createElement(HomeStory,{onOpen:()=>{}}));
  assert.equal((home.match(/class="la-chapter"/g)||[]).length,9);
  const initial={user:{id:'test',name:'제우',admin:true,needsProfile:false},items:trip.INITIAL_ITEMS,decisions:trip.INITIAL_DECISIONS,comments:[],expenses:[],memories:[],votes:[],usedNames:[],settings:{rate:1400,rateLabel:'가정',finalized:false}};
+ const {RestaurantsPanel}=await import(path.join(root,'app/restaurants-panel.mjs'));
+ const {RESTAURANTS}=await import(path.join(root,'lib/restaurants.mjs'));
+ assert.equal(RESTAURANTS.length,10);
+ assert.equal(RESTAURANTS.find(r=>r.id==='holbox').status,'대안 후보');
+ const food=renderToStaticMarkup(React.createElement(RestaurantsPanel,{onOpenDay:()=>{}}));
+ assert(food.includes('food-holbox'));assert(food.includes('소노라타운과 둘 중 하나'));
+ assert(!food.includes('undefined'));assert(food.includes('예약이 완료된 일정은 아닙니다'));
+ for(const r of RESTAURANTS){assert(trip.DAYS.includes(r.date));assert(r.budget[0]<=r.budget[1]);}
  const html=renderToStaticMarkup(React.createElement(TripApp,{initial}));
+ assert(html.includes('식당'));
+
  assert(html.includes('la-nav-mobile'));assert(!html.slice(html.indexOf('<header'),html.indexOf('</header>')).includes('la-nav-mobile'),'Mobile fixed nav must be outside filtered header');
  assert(!html.includes('undefined'));assert(!html.includes('NaN'));
  console.log('Design checks passed: 9 chapters, 15 credited photos, per-day maps, edit-safe pins, server rendering, separated mobile navigation.');
