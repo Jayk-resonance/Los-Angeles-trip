@@ -1,7 +1,7 @@
 export const FAMILY=['제우','승빈','재혁'] as const;
 export const DAYS=['2026-10-29','2026-10-30','2026-10-31','2026-11-01','2026-11-02','2026-11-03','2026-11-04','2026-11-05','2026-11-06'];
 export const DAY_TITLES=['LA에 도착하는 날','핼러윈을 즐기는 금요일','사막으로 떠나는 길','조슈아트리의 아침','바다 쪽으로','도심에서 별빛까지','영화 속 하루','마지막 LA 산책','집으로 돌아가는 날'];
-export const DAY_SUBS=['LAX · 코리아타운 · 그로브는 컨디션에 따라','할리우드 · Micky’s 공연 잠정 · 세 사람의 저녁','조슈아트리 국립공원 1박 · 세 사람','공원 산책 · LA 복귀 · 세 사람','산타모니카 · 베니스 비치 · 느긋한 하루','더 브로드 · 리틀도쿄 · 그리피스 천문대','유니버설 낮 파크 · 제우와 승빈 · HHN 제외','게티센터 · 베벌리힐스 · 짐 정리','LAX 09:50 출발 · 이른 아침 공항 이동'];
+export const DAY_SUBS=['LAX · 코리아타운 · 그로브는 컨디션에 따라','시타델 쇼핑 · 할리우드 선택 · 세 사람의 저녁','조슈아트리 국립공원 1박 · 세 사람','공원 산책 · LA 복귀 · 세 사람','산타모니카 · 베니스 비치 · 느긋한 하루','더 브로드 · 리틀도쿄 · 그리피스 천문대','유니버설 낮 파크 · 제우와 승빈 · HHN 제외','게티센터 · 베벌리힐스 · 트레이더 조 기념품 · 짐 정리','LAX 09:50 출발 · 이른 아침 공항 이동'];
 export type Item={id:string;day:string;time:string;title:string;english:string;category:string;status:string;note:string;place:string;people:string[];done:boolean};
 export type Decision={id:string;title:string;day:string;description:string;options:string[];status:string;result:string};
 export type RecordRow={id:string;kind:string;data:string;author:string;created:string;deleted:number};
@@ -135,7 +135,7 @@ export const INITIAL_ITEMS:Item[]=[
     "english": "The Grove & Original Farmers Market",
     "category": "식사",
     "status": "후보",
-    "note": "도착일 컨디션이 괜찮으면 가벼운 식사와 산책. 피곤하면 쉬고, 10/30 할리우드 거리 관광 뒤로 옮겨요. 로스펠리즈 카페와는 대체 일정이에요.",
+    "note": "도착일 컨디션이 괜찮으면 짧게 산책한 뒤 트레이더 조에서 장을 봐요. 피곤하면 그로브는 생략하고 필요한 장보기만 합니다.",
     "place": "The Grove Los Angeles",
     "people": [
       "제우",
@@ -146,12 +146,12 @@ export const INITIAL_ITEMS:Item[]=[
   {
     "id": "hollywood",
     "day": "2026-10-30",
-    "time": "11:00",
+    "time": "14:30",
     "title": "할리우드 거리 산책",
     "english": "Hollywood Walk of Fame",
     "category": "액티비티",
     "status": "후보",
-    "note": "제우와 승빈이 명예의 거리와 극장 외관을 가볍게 둘러봐요. 영화관 투어나 별도 유료 체험은 포함하지 않았어요.",
+    "note": "승빈과 오전 시타델 쇼핑 후 1시간 정도 가볍게 산책해요. 쇼핑이 길어지거나 피곤하면 생략하고 숙소에서 쉽니다.",
     "place": "Hollywood Walk of Fame",
     "people": [
       "제우",
@@ -162,13 +162,13 @@ export const INITIAL_ITEMS:Item[]=[
   {
     "id": "los-feliz",
     "day": "2026-10-30",
-    "time": "14:00",
-    "title": "로스펠리즈 카페 · 선택",
-    "english": "Los Feliz",
+    "time": "16:00",
+    "title": "숙소 휴식 · 코스튬 준비",
+    "english": "Rest & costume prep",
     "category": "휴식",
     "status": "후보",
-    "note": "금요일 저녁을 위해 무리하지 않아요. 전날 그로브를 못 갔다면 카페 대신 그로브·파머스마켓으로 교체합니다.",
-    "place": "Los Feliz Los Angeles",
+    "note": "시타델·할리우드 관광 후 숙소에서 쉬고 저녁 공연을 준비해요. 로스펠리즈 카페는 이번 변경안에서 제외합니다.",
+    "place": "Koreatown, Los Angeles",
     "people": [
       "제우",
       "승빈"
@@ -594,6 +594,54 @@ export const INITIAL_ITEMS:Item[]=[
     "status": "예약 완료",
     "note": "발권 완료 · 에어프레미아 YP102 · 이코노미. 11/6 로스앤젤레스(LAX) TB 09:50 출발 → 11/7 인천(ICN) T1 16:20 도착, 비행 13시간 30분. 위탁수하물 1인당 2개(중량은 예약 상세에서 확인). 각 공항 현지시간 기준.",
     "place": "Los Angeles International Airport",
+    "people": [
+      "제우",
+      "승빈"
+    ],
+    "done": false
+  },
+  {
+    "id": "trader-groceries",
+    "day": "2026-10-29",
+    "time": "16:30",
+    "title": "트레이더 조 · 여행 중 먹을 장보기",
+    "english": "Trader Joe’s · La Brea & 3rd",
+    "category": "쇼핑",
+    "status": "계획 확정",
+    "note": "30–45분 정도 아침거리·집밥 재료와 맛볼 간식을 구매해요. 기념품은 11/5에 고릅니다. 도착일 컨디션에 따라 그로브를 생략하고 장보기만 짧게 해도 좋아요.",
+    "place": "Trader Joe's, 263 S La Brea Ave, Los Angeles, CA 90036",
+    "people": [
+      "제우",
+      "승빈"
+    ],
+    "done": false
+  },
+  {
+    "id": "citadel",
+    "day": "2026-10-30",
+    "time": "10:00",
+    "title": "승빈과 시타델 아울렛",
+    "english": "Citadel Outlets",
+    "category": "쇼핑",
+    "status": "계획 확정",
+    "note": "09:15 전후 숙소 출발, 10:00–13:30 쇼핑과 간단한 점심. 코치 → 폴로 랄프 로렌 → 나이키 순으로 보고 14시 전후에는 출발해요. 할인·재고는 매장별로 다르며, 저녁 재혁 합류 전 숙소 휴식 시간을 남깁니다. 11/1은 쇼핑 없이 세 사람의 조슈아트리 일정으로 유지해요.",
+    "place": "Citadel Outlets, 100 Citadel Drive, Commerce, CA",
+    "people": [
+      "제우",
+      "승빈"
+    ],
+    "done": false
+  },
+  {
+    "id": "trader-gifts",
+    "day": "2026-11-05",
+    "time": "16:30",
+    "title": "트레이더 조 · 기념품 쇼핑",
+    "english": "Trader Joe’s · La Brea & 3rd",
+    "category": "쇼핑",
+    "status": "계획 확정",
+    "note": "게티센터·베벌리힐스 산책 후 45–60분, 먹어보고 마음에 든 간식·커피·시즈닝·쇼핑백 등을 골라요. 베벌리힐스는 조금 짧게 둘러보고, 쇼핑 후 숙소에 짐을 두고 마지막 저녁을 즐깁니다.",
+    "place": "Trader Joe's, 263 S La Brea Ave, Los Angeles, CA 90036",
     "people": [
       "제우",
       "승빈"

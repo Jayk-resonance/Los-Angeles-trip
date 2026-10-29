@@ -5,7 +5,7 @@ import ts from 'typescript';
 import {renderToStaticMarkup} from 'react-dom/server';
 import React from 'react';
 const root=fs.mkdtempSync(path.resolve('.design-check-'));
-const files=['lib/trip.ts','lib/restaurants.ts','app/restaurants-panel.tsx','lib/scenes.ts','lib/map-points.ts','lib/photo-credits.ts','app/travel-photo.tsx','app/home-story.tsx','app/day-route-map.tsx','app/trip-app.tsx'];
+const files=['lib/trip.ts','lib/weather.ts','app/day-weather.tsx','lib/restaurants.ts','app/restaurants-panel.tsx','lib/scenes.ts','lib/map-points.ts','lib/photo-credits.ts','app/travel-photo.tsx','app/home-story.tsx','app/day-route-map.tsx','app/trip-app.tsx'];
 try{
  for(const file of files){
   const target=path.join(root,file.replace(/\.tsx?$/,'.mjs'));fs.mkdirSync(path.dirname(target),{recursive:true});
@@ -13,6 +13,11 @@ try{
   out=out.replace(/from ['"](@\/|\.\/)([^'"]+)['"]/g,(_,prefix,tail)=>`from '${prefix==='@/'?'../':prefix}${tail}.mjs'`);
   fs.writeFileSync(target,out);
  }
+ const {DayWeather}=await import(path.join(root,'app/day-weather.mjs'));
+ const {WEATHER}=await import(path.join(root,'lib/weather.mjs'));
+ assert.equal(WEATHER.length,9);
+ assert.equal(WEATHER.find(w=>w.date==='2026-11-01').area,'조슈아트리 타운');
+ for(const w of WEATHER){assert(w.high>=w.low);const weatherHTML=renderToStaticMarkup(React.createElement(DayWeather,{day:w.date}));assert(weatherHTML.includes('자동 갱신되지 않습니다'));assert(!weatherHTML.includes('undefined'));}
  const trip=await import(path.join(root,'lib/trip.mjs'));
  const {DAY_SCENES,SCENES,itemScene}=await import(path.join(root,'lib/scenes.mjs'));
  const {PHOTO_CREDITS}=await import(path.join(root,'lib/photo-credits.mjs'));

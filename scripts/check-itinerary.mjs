@@ -6,7 +6,7 @@ import ts from 'typescript';
 import { DatabaseSync } from 'node:sqlite';
 const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'la-itinerary-'));
 try {
- for(const name of ['trip','itinerary-revision','flight-confirmation']){
+ for(const name of ['trip','itinerary-revision','flight-confirmation','shopping-revision']){
   let source=ts.transpileModule(fs.readFileSync(`lib/${name}.ts`,'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
   source=source.replace("from './trip'","from './trip.mjs'");
   fs.writeFileSync(path.join(temporary,`${name}.mjs`),source);
@@ -63,5 +63,17 @@ try {
  await applyFlightConfirmation(database);assert.equal(value('flight-out').note,'later user edit');
  assert.equal(value('expense-1').amount,25);assert.equal(value('memory-1').text,'keep');
  console.log(`PASS: ${INITIAL_ITEMS.length} itinerary items, ${INITIAL_DECISIONS.length} decisions; date mapping, booking guidance, data preservation, flight confirmation and idempotent revisions.`);
+ const {applyShoppingRevision,SHOPPING_REVISION}=await import(path.join(temporary,'shopping-revision.mjs'));
+ for(const id of ['hollywood','los-feliz','grove']){const x=INITIAL_ITEMS.find(v=>v.id===id);insert.run(id,'item',JSON.stringify({...x,time:'old',done:true,people:['승빈']}),'user','old');}
+ await applyShoppingRevision(database);
+ assert.equal(value('hollywood').time,'14:30');assert(value('hollywood').done);assert.deepEqual(value('hollywood').people,['승빈']);
+ assert(value(SHOPPING_REVISION).previous.length===3);
+ sql.prepare("UPDATE records SET data=json_set(data,'$.time',?) WHERE id=?").run('15:30','hollywood');
+ await applyShoppingRevision(database);assert.equal(value('hollywood').time,'15:30');
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='citadel').day,'2026-10-30');
+ assert.deepEqual(INITIAL_ITEMS.find(x=>x.id==='citadel').people,['제우','승빈']);
+ assert(!INITIAL_ITEMS.some(x=>x.day==='2026-11-01'&&x.category==='쇼핑'));
+ assert.equal(INITIAL_ITEMS.find(x=>x.id==='trader-gifts').day,'2026-11-05');
+ console.log('PASS: shopping revision preserves user state and applies once; two Trader Joe visits and Friday Citadel.');
  sql.close();
 } finally {fs.rmSync(temporary,{recursive:true,force:true});}

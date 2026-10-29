@@ -4,9 +4,12 @@ export type MapStop={id:string;label:string;lat:number;lng:number;query:string;r
 const LOCATIONS:Record<string,[string,number,number,boolean?]>={
  'lax-arrive':['로스앤젤레스 공항',33.9425,-118.4081],
  'koreatown':['코리아타운 · 지역 중심',34.0618,-118.3009,true],
+ 'trader-groceries':['트레이더 조 · 장보기',34.069,-118.3445],
+ 'trader-gifts':['트레이더 조 · 기념품',34.069,-118.3445],
+ 'citadel':['시타델 아울렛',34.005,-118.152],
  'grove':['그로브',34.0722,-118.3571],
  'hollywood':['할리우드 명예의 거리',34.1017,-118.3408],
- 'los-feliz':['로스펠리스 · 지역 중심',34.111,-118.287,true],
+ 'los-feliz':['코리아타운 · 휴식',34.0618,-118.3009,true],
  'halloween-dinner':['귀사도스 · 저녁 후보',34.0838,-118.3867],
  'mickys':['미키스 · 공연 잠정',34.0855,-118.3837],
  'joshua':['조슈아트리 · 공원 위치 참고',34.012,-116.166,true],

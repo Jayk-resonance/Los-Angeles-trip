@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { INITIAL_ITEMS, INITIAL_DECISIONS, INITIAL_EXPENSES, FAMILY, type RecordRow } from './trip';
 import { applyItineraryRevision } from './itinerary-revision';
+import {applyShoppingRevision} from './shopping-revision';
 import { applyFlightConfirmation } from './flight-confirmation';
 
 export class AppError extends Error{constructor(public status:number,message:string){super(message);}}
@@ -15,6 +16,7 @@ export async function record(id:string,kind?:string){const r=await db().prepare(
 export async function seed(){
  await applyItineraryRevision(db());
  await applyFlightConfirmation(db());
+ await applyShoppingRevision(db());
  const entries=[...INITIAL_ITEMS.map(x=>({kind:'item',value:x})),...INITIAL_DECISIONS.map(x=>({kind:'decision',value:x})),...INITIAL_EXPENSES.map(x=>({kind:'expense',value:x})),{kind:'settings',value:{id:'settings',rate:1400,rateLabel:'임시 환율 · 1 USD = 1,400 KRW',finalized:false}}];
  await db().batch(entries.map(e=>db().prepare('INSERT OR IGNORE INTO records (id,kind,data,author,created) VALUES (?,?,?,?,?)').bind(e.value.id,e.kind,JSON.stringify(e.value),'system','2026-09-15T00:00:00Z')));
 }
